@@ -9,8 +9,14 @@ const urlDatabase = {
 };
 
 app.get("/urls", (req, res) => { // define our route, which is /urls
-const templateVars = {urls: urlDatabase};
-res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
+  const templateVars = {urls: urlDatabase};
+  res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  const tempVars = { shortURL: req.params.shortURL, longURL: req.params.longURL
+  }
+  res.render("urls_show", tempVars);
 });
 
 app.get("/", (req, res) => {
