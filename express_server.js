@@ -8,7 +8,7 @@ const urlDatabase = {
 "9sm5xK": "http://www.google.com"
 };
 
-app.get("/urls", (req, res) => {
+app.get("/urls", (req, res) => { // define our route, which is /urls
 const templateVars = {urls: urlDatabase};
 res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
 });
