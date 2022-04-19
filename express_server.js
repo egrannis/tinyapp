@@ -13,8 +13,8 @@ app.get("/urls", (req, res) => { // define our route, which is /urls
   res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
 });
 
-app.get("urls/new", (req, res) => {
-  res.render("urls_new")
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.get("/urls/:shortURL", (req, res) => {
