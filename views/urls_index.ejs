@@ -27,7 +27,7 @@
             <td><%= url %></td>
             <td><%= urls[url] %></td>
             <!-- <td> <a href = '#'>Placeholder Text</a> </td> -->
-            <td><form method="POST" action="/urls/${url}/delete">
+            <td><form method="POST" action="/urls/<%=url%>/delete">
               <button>Delete</button> <!-- added delete button-->
             </form></td> <!-- added this on apr 19 3:35 pm-->
           </tr>
