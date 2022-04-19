@@ -60,7 +60,7 @@ app.post("/urls", (req, res) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const dShortURL = request.params.shortURL;
-  delete(dShortURL);
+  delete(urlDatabase[dShortURL]);
   response.redirect('/urls');
 })
 
