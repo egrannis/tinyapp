@@ -16,10 +16,10 @@
 
     <main style="margin: 1em;">
       <h3>Create TinyURL</h3>
-      <form class="form-inline" action="/urls" method="POST">
+      <form class="form-inline" action="/urls" method="POST"> <!-- action attribute tells the form which URL to submit, method attribute tells the form which HTTP method to use when submitting the form -->
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>
-          <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em">
+          <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em"> <!--input tag has an imp attribute, name. Name identifies the data we are storing. In this case, it adds the key longURL to the data we'll be sending in the body of our post request -->
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
