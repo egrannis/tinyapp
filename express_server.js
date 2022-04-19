@@ -41,6 +41,16 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n")
 });
 
+function generateRandomString() {
+  let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+   let randString = '';
+ 
+   for (let i = 0; i < 6; i++ ) {
+     randString += string[Math.floor(Math.random()* string.length)];
+   }
+   return randString;
+  }
+
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
@@ -48,15 +58,13 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
-function generateRandomString() {
- let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let randString = '';
+app.post('/urls/:shortURL/delete', (request, response) => {
+  const dShortURL = request.params.shortURL;
+  delete(dShortURL);
+  response.redirect('/urls');
+})
 
-  for (let i = 0; i < 6; i++ ) {
-    randString += string[Math.floor(Math.random()* string.length)];
-  }
-  return randString;
- }
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
