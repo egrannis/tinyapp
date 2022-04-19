@@ -38,7 +38,8 @@ app.get("/hello", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  let shortURL = generateRandomString();
+  let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
+  res.redirect("/:shortURL") // redirecting to shortURL page
   res.status(200).send("ok!");         // Respond with 'Ok' (we will replace this)
   urlDatabase.shortURL = req.body // saving the long url at short url key
 });
