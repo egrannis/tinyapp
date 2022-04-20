@@ -27,7 +27,7 @@ const users = {
 }
 
 app.get("/urls", (request, response) => { // define our route, which is /urls
-  const userId = response.cookie.userid;
+  const userId = request.cookies.userId;
   const templateVars = {
     urls: urlDatabase,
     user: users[userId]
@@ -37,7 +37,7 @@ app.get("/urls", (request, response) => { // define our route, which is /urls
 });
 
 app.get("/urls/new", (request, response) => {
-  const userId = response.cookie.userId;
+  const userId = request.cookies.userId;
   const templateVars = {
     // username: request.cookies.username
     user: users[userId]
@@ -46,7 +46,7 @@ app.get("/urls/new", (request, response) => {
 });
 
 app.get("/urls/:shortURL", (request, response) => {
-  const userId = response.cookie.userId;
+  const userId = request.cookies.userId;
   const tempVars = { 
     shortURL: request.params.shortURL, 
     longURL: urlDatabase[request.params.shortURL],
@@ -57,7 +57,7 @@ app.get("/urls/:shortURL", (request, response) => {
 });
 
 app.get("/register", (request, response) => {
-  const userId = response.cookie.userId;
+  const userId = request.cookies.userId;
   const templateVars = {
     user: users[userId]
     // username: request.cookies.username
