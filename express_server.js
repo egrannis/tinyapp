@@ -16,16 +16,27 @@ const urlDatabase = {
 };
 
 app.get("/urls", (req, res) => { // define our route, which is /urls
-  const templateVars = {urls: urlDatabase};
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies.username
+    //any other vars?
+  };
   res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies.username
+  }
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const tempVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const tempVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies.username
+  };
   res.render("urls_show", tempVars);
 });
 
@@ -72,6 +83,10 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 app.post('/login', (request, response) => {
   console.log(request.body);
   response.cookie('username', request.body.username).redirect('/urls');
+});
+
+app.post('/logout', (request, response) => {
+  response.clearCookie('username').redirect('/urls');
 });
 
 app.post('/urls/:id', (request, response) => {
