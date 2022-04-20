@@ -3,17 +3,28 @@ const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
-// const res = require("express/lib/response"); // look into this
+const response = require("express/lib/response"); // look into this
 app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
-
-
 
 const urlDatabase = {
 "b2xVn2": "http://www.lighthouselabs.ca",
 "9sm5xK": "http://www.google.com"
 };
+
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 app.get("/urls", (request, response) => { // define our route, which is /urls
   const templateVars = {
@@ -75,9 +86,9 @@ function generateRandomString() {
   }
 
 app.post("/urls", (request, response) => {
-  console.log(req.body);  // Log the POST request body to the console
+  console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
-  urlDatabase[shortURL] = req.body.longURL; // saving the long url at short url key
+  urlDatabase[shortURL] = request.body.longURL; // saving the long url at short url key
   response.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
@@ -94,6 +105,14 @@ app.post('/login', (request, response) => {
 
 app.post('/logout', (request, response) => {
   response.clearCookie('username').redirect('/urls');
+});
+
+app.post('/register', (request, response) => {
+const userId = generateRandomString();
+const user = {id: userId, email: request.body.email, password: request.body.password }
+users[userId] = user; // at key of userID, the value is an object.
+response.cookie('userid', userId);
+response.redirect('/urls');// after adding user, set userid cookie containing new ID
 });
 
 app.post('/urls/:id', (request, response) => {
