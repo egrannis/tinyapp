@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
-const response = require("express/lib/response"); // look into this
+// const response = require("express/lib/response"); // look into this
 app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -31,7 +31,6 @@ app.get("/urls", (request, response) => { // define our route, which is /urls
   const templateVars = {
     urls: urlDatabase,
     user: users[userId]
-    // username: request.cookies.username
   };
   response.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
 });
@@ -39,7 +38,6 @@ app.get("/urls", (request, response) => { // define our route, which is /urls
 app.get("/urls/new", (request, response) => {
   const userId = request.cookies.userId;
   const templateVars = {
-    // username: request.cookies.username
     user: users[userId]
   }
   response.render("urls_new", templateVars);
@@ -51,7 +49,6 @@ app.get("/urls/:shortURL", (request, response) => {
     shortURL: request.params.shortURL, 
     longURL: urlDatabase[request.params.shortURL],
     user: users[userId]
-    // username: request.cookies.username
   };
   response.render("urls_show", tempVars);
 });
@@ -60,9 +57,16 @@ app.get("/register", (request, response) => {
   const userId = request.cookies.userId;
   const templateVars = {
     user: users[userId]
-    // username: request.cookies.username
   }
   response.render("urls_register", templateVars);
+});
+
+app.get("/login", (request, response) => {
+  const userId = request.cookies.userId;
+  const templateVars = {
+    user: users[userId]
+  }
+  response.render("urls_login", templateVars);
 });
 
 app.get("/u/:shortURL", (request, response) => {
@@ -107,7 +111,7 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 app.post('/login', (request, response) => {
   console.log(request.body);
-  response.cookie('username', request.body.username).redirect('/urls');
+  response.cookie('userId', request.body.username).redirect('/urls');
 });
 
 app.post('/logout', (request, response) => {
@@ -136,7 +140,6 @@ if (findUserByEmail(email)) {
 };
 const user = {id: userId, email: request.body.email, password: request.body.password }
 users[userId] = user; // at key of userID, the value is an object.
-console.log(users);
 response.cookie('userId', userId); 
 response.redirect('/urls');// after adding user, set userid cookie containing new ID
 });
