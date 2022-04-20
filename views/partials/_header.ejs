@@ -9,12 +9,12 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-    </div>
+    </div> 
     <% if(username) {%>
-     <p> Logged in as: <%=username%></p>
+     <p style="margin-right: 70px" > Logged in as: <%=username%></p>
      <form method="POST" action="/logout">
       <div style="display: flex; justify-content: flex-end"> 
-      <button type="submit" class="btn btn-primary" >Logout</button> <!-- added submit button-->
+      <button type="submit" class="btn btn-primary" style="justify-content: flex-end" >Logout</button> <!-- added submit button-->
     </div>
     </form>
      <%} else { %>
