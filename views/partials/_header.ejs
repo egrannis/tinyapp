@@ -10,20 +10,24 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div> 
-    <% if(username) {%>
-     <p style="margin-right: 70px" > Logged in as: <%=username%></p>
+    <% if(user) {%>
+     <p style="margin-right: 70px" > Logged in as: <%=user.email%></p>
      <form method="POST" action="/logout">
       <div style="display: flex; justify-content: flex-end"> 
-      <button type="submit" class="btn btn-primary" style="justify-content: flex-end" >Logout</button> <!-- added submit button-->
-    </div>
+        <button type="submit" class="btn btn-primary" style="justify-content: flex-end" >Logout</button> <!-- added submit button-->
+      </div>
     </form>
      <%} else { %>
-    <form method="POST" action="/login">
-      <div style="display: flex; justify-content: flex-end"> 
-      <input class="form-control" type="text" name="username" placeholder="Username">
-      <button type="submit" class="btn btn-primary" >Login</button> <!-- added submit button-->
+    <div style="display: flex; justify-content: flex-end"> 
+      <form method="GET" action="/login">
+        <button type="submit" class="btn btn-primary" style="margin-right: 30px" >Login</button> <!-- added submit button-->
+      </form>
+      <!-- <input class="form-control" type="text" name="username" placeholder="Username"> -->
+      <form method="GET" action="/register">
+        <button type="submit" class="btn btn-primary" >Register</button> <!-- added submit button-->
+      </form>
     </div>
-    </form>
+ 
     <%}%>
   </nav>
 </header>
