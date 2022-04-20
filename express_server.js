@@ -15,53 +15,53 @@ const urlDatabase = {
 "9sm5xK": "http://www.google.com"
 };
 
-app.get("/urls", (req, res) => { // define our route, which is /urls
+app.get("/urls", (request, response) => { // define our route, which is /urls
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies.username
+    username: request.cookies.username
     //any other vars?
   };
-  res.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
+  response.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
 });
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (request, response) => {
   const templateVars = {
-    username: req.cookies.username
+    username: request.cookies.username
   }
-  res.render("urls_new", templateVars);
+  response.render("urls_new", templateVars);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
+app.get("/urls/:shortURL", (request, response) => {
   const tempVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies.username
+    shortURL: request.params.shortURL, 
+    longURL: urlDatabase[request.params.shortURL],
+    username: request.cookies.username
   };
-  res.render("urls_show", tempVars);
+  response.render("urls_show", tempVars);
 });
 
-app.get("/urls/register", (req, res) => {
+app.get("/register", (request, response) => {
   const templateVars = {
-    username: req.cookies.username
+    username: request.cookies.username
   }
-  res.render("urls_register", templateVars);
+  response.render("urls_register", templateVars);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+app.get("/u/:shortURL", (request, response) => {
+  const longURL = urlDatabase[request.params.shortURL];
+  response.redirect(longURL);
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+app.get("/", (request, response) => {
+  response.send("Hello!");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.get("/urls.json", (request, response) => {
+  response.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n")
+app.get("/hello", (request, response) => {
+  response.send("<html><body>Hello <b>World</b></body></html>\n")
 });
 
 function generateRandomString() {
@@ -74,11 +74,11 @@ function generateRandomString() {
    return randString;
   }
 
-app.post("/urls", (req, res) => {
+app.post("/urls", (request, response) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
   urlDatabase[shortURL] = req.body.longURL; // saving the long url at short url key
-  res.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
+  response.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
 app.post('/urls/:shortURL/delete', (request, response) => {
