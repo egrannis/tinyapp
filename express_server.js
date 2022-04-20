@@ -40,6 +40,13 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", tempVars);
 });
 
+app.get("/urls/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username
+  }
+  res.render("urls_register", templateVars);
+});
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
