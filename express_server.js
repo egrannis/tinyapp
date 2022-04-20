@@ -26,6 +26,26 @@ const users = {
   }
 }
 
+const findUserByEmail = (email) => {
+  const givenEmail = email;
+  for (let userKey in users) {
+    if (users[userKey].email === givenEmail) {
+      return users[userKey];
+    }
+  }
+  return false;
+};
+
+function generateRandomString() {
+  let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+   let randString = '';
+ 
+   for (let i = 0; i < 6; i++ ) {
+     randString += string[Math.floor(Math.random()* string.length)];
+   }
+   return randString;
+  }
+
 app.get("/urls", (request, response) => { // define our route, which is /urls
   const userId = request.cookies.userId;
   const templateVars = {
@@ -86,16 +106,6 @@ app.get("/hello", (request, response) => {
   response.send("<html><body>Hello <b>World</b></body></html>\n")
 });
 
-function generateRandomString() {
-  let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-   let randString = '';
- 
-   for (let i = 0; i < 6; i++ ) {
-     randString += string[Math.floor(Math.random()* string.length)];
-   }
-   return randString;
-  }
-
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
@@ -111,23 +121,20 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 app.post('/login', (request, response) => {
   console.log(request.body);
-  response.cookie('userId', request.body.username).redirect('/urls');
+  const user = findUserByEmail(request.body.email);
+  if(!user) {
+    return response.status(403).send('Sorry, a user with that email cannot be found.');
+  }
+  if(request.body.password !== user.password) {
+    return response.status(403).send('Sorry, incorrect password!');
+  }
+  response.cookie('userId', user.id).redirect('/urls');
 });
 
 app.post('/logout', (request, response) => {
   response.clearCookie('userId').redirect('/urls');
 });
 
-const findUserByEmail = (email) => {
-  const givenEmail = email;
-  for (let userKey in users) {
-    console.log(users[userKey]);
-    if (users[userKey].email === givenEmail) {
-      return true;
-    }
-  }
-  return false;
-};
 
 app.post('/register', (request, response) => {
 const userId = generateRandomString();
