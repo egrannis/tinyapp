@@ -111,13 +111,32 @@ app.post('/login', (request, response) => {
 });
 
 app.post('/logout', (request, response) => {
-  response.clearCookie('username').redirect('/urls');
+  response.clearCookie('userId').redirect('/urls');
 });
+
+const findUserByEmail = (email) => {
+  const givenEmail = email;
+  for (let userKey in users) {
+    console.log(users[userKey]);
+    if (users[userKey].email === givenEmail) {
+      return true;
+    }
+  }
+  return false;
+};
 
 app.post('/register', (request, response) => {
 const userId = generateRandomString();
+const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
+if (email === '' || password === '') {
+  return response.status(400).send('400: You can\'t enter an empty string as an email or password!');
+};
+if (findUserByEmail(email)) {
+  return response.status(400).send('Your account already exists. Please log in instead!');
+};
 const user = {id: userId, email: request.body.email, password: request.body.password }
 users[userId] = user; // at key of userID, the value is an object.
+console.log(users);
 response.cookie('userId', userId); 
 response.redirect('/urls');// after adding user, set userid cookie containing new ID
 });
