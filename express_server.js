@@ -3,8 +3,12 @@ const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
-const res = require("express/lib/response");
+// const res = require("express/lib/response"); // look into this
 app.use(bodyParser.urlencoded({extended: true}));
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+
 
 const urlDatabase = {
 "b2xVn2": "http://www.lighthouselabs.ca",
@@ -65,13 +69,17 @@ app.post('/urls/:shortURL/delete', (request, response) => {
   response.redirect('/urls');
 });
 
+app.post('/login', (request, response) => {
+  console.log(request.body);
+  response.cookie('username', request.body.username).redirect('/urls');
+});
+
 app.post('/urls/:id', (request, response) => {
   const shortURL = request.params.id;// took existing short URL, and changing the long URL value at the same short URL value
   console.log(shortURL);
   urlDatabase[shortURL] = request.body.longURL;
   response.redirect('/urls');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
