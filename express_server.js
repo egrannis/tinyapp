@@ -3,36 +3,34 @@ const app = express();
 const PORT = 3001; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
-// const response = require("express/lib/response"); // look into this
 app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
-const { request } = require("express");
-const res = require("express/lib/response");
+// const response = require("express/lib/response");
 app.use(cookieParser());
 
 const urlDatabase = {
   b6UTxQ: {
-        longURL: "https://www.tsn.ca",
-        userID: "userRandomID"
-    },
-    i3BoGr: {
-        longURL: "https://www.google.ca",
-        userID: "userRandomID"
-    }
+    longURL: "https://www.tsn.ca",
+    userID: "userRandomID"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "userRandomID"
+  }
 };
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
+};
 
 const findUserByEmail = (email) => {
   const givenEmail = email;
@@ -44,21 +42,21 @@ const findUserByEmail = (email) => {
   return false;
 };
 
-function generateRandomString() {
+const generateRandomString = () => {
   let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-   let randString = '';
+  let randString = '';
  
-   for (let i = 0; i < 6; i++ ) {
-     randString += string[Math.floor(Math.random()* string.length)];
-   }
-   return randString;
+  for (let i = 0; i < 6; i++) {
+    randString += string[Math.floor(Math.random() * string.length)];
+  }
+  return randString;
 };
 
-function urlsForUser(id){
-  const userURLS = {}
+const urlsForUser = (id) => {
+  const userURLS = {};
   for (let shortURL in urlDatabase) {
-    if(urlDatabase[shortURL].userID === id) {
-      userURLS[shortURL] = urlDatabase[shortURL]
+    if (urlDatabase[shortURL].userID === id) {
+      userURLS[shortURL] = urlDatabase[shortURL];
     }
   }
   return userURLS;
@@ -66,11 +64,11 @@ function urlsForUser(id){
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
   const userId = request.cookies.userId;
-  if (!users[userId]) { // updated cant change
-    return response.send('Sorry, you can only view URLs if you are logged in. Please register or log in.')
-  };
+  if (!users[userId]) { // if users database at that userid doesn't exist
+    return response.send('Sorry, you can only view URLs if you are logged in. Please register or log in.');
+  }
   const templateVars = {
-    urls: urlsForUser(userId),//poss issue here
+    urls: urlsForUser(userId), // users can only see the shortURLs for their specific userid
     user: users[userId]
   };
   response.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
@@ -78,34 +76,34 @@ app.get("/urls", (request, response) => { // view my URLs page that shows everyt
 
 app.get("/urls/new", (request, response) => { // view "Create new URL"
   const userId = request.cookies.userId;
-  if (!users[userId]) {
+  if (!users[userId]) {// if users database at userid doesn't exist, then it'll respond
     return response.status(403).redirect('/login');
   }
   const templateVars = {
     user: users[userId]
-  }
+  };
   response.render("urls_new", templateVars);
 });
 
-app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL 
+app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL
   const shortURL = request.params.shortURL;
   const userId = request.cookies.userId;
-  if (urlDatabase[shortURL].userID !== userId) {// updated line 98
-    return response.send('Sorry, you cannot edit this URL because you do not own it')
+  if (urlDatabase[shortURL].userID !== userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+    return response.send('Sorry, you cannot edit this URL because you did not create it.');
   }
-  const templateVars = { 
-    shortURL: request.params.shortURL, 
+  const templateVars = {
+    shortURL: request.params.shortURL,
     longURL: urlDatabase[request.params.shortURL].longURL,
     user: users[userId]
   };
   response.render("urls_show", templateVars);
 });
 
-app.get("/register", (request, response) => { // view register page 
+app.get("/register", (request, response) => { // view register page
   const userId = request.cookies.userId;
   const templateVars = {
     user: users[userId]
-  }
+  };
   response.render("urls_register", templateVars);
 });
 
@@ -113,7 +111,7 @@ app.get("/login", (request, response) => { // view login page
   const userId = request.cookies.userId;
   const templateVars = {
     user: users[userId]
-  }
+  };
   response.render("urls_login", templateVars);
 });
 
@@ -121,7 +119,7 @@ app.get("/u/:shortURL", (request, response) => { // The created shortURL link th
   if (!urlDatabase[request.params.shortURL]) {
     return response.send('Sorry, that shortURL id does not exist!');
   }
-  const longURL = urlDatabase[request.params.shortURL].longURL; 
+  const longURL = urlDatabase[request.params.shortURL].longURL;
   response.redirect(longURL);
 });
 
@@ -130,28 +128,29 @@ app.get("/", (request, response) => { // homepage
 });
 
 app.get("/urls.json", (request, response) => { // json object urlDatabase
-  response.json(urlDatabase); 
+  response.json(urlDatabase);
 });
 
 app.get("/hello", (request, response) => {
-  response.send("<html><body>Hello <b>World</b></body></html>\n")
+  response.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  if (urlDatabase[shortURL].userID !== userId) {//I need to update htis, only updated get request
-    return response.send('Sorry, you cannot delete this URL because you did not create it.')
+  const userId = request.cookies.userId;
+  if (urlDatabase[shortURL].userID !== userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+    return response.send('Sorry, you cannot delete this URL because you did not create it.');
   }
-  delete(urlDatabase[shortURL]); 
+  delete(urlDatabase[shortURL]);
   response.redirect('/urls');
 });
 
 app.post('/login', (request, response) => {
   const user = findUserByEmail(request.body.email);
-  if(!user) {
+  if (!user) {
     return response.status(403).send('Sorry, a user with that email cannot be found.');
   }
-  if(request.body.password !== user.password) {
+  if (request.body.password !== user.password) {
     return response.status(403).send('Sorry, incorrect password!');
   }
   response.cookie('userId', user.id).redirect('/urls');
@@ -166,11 +165,11 @@ app.post('/register', (request, response) => {
   const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
   if (email === '' || password === '') {
     return response.status(400).send('400: You can\'t enter an empty string as an email or password!');
-  };
+  }
   if (findUserByEmail(email)) {
     return response.status(400).send('Your account already exists. Please log in instead!');
-  };
-  const user = {id: userId, email: request.body.email, password: request.body.password }
+  }
+  const user = {id: userId, email: request.body.email, password: request.body.password };
   users[userId] = user; // at key of userID, the value is an object.
   response.cookie('userId', userId).redirect('/urls');
 });
@@ -181,14 +180,15 @@ app.post('/urls', (request, response) => { //Creating new URL
     return response.status(403).redirect('/login');
   }
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
-  urlDatabase[shortURL] = { longURL: request.body.longURL, userID: userId }; 
+  urlDatabase[shortURL] = { longURL: request.body.longURL, userID: userId };
   response.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
 app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
+  const userId = request.cookies.userId;
   if (urlDatabase[shortURL].userID !== userId) { //checking if the userid for that short URL matches that of the person requesting
-    return response.send('Sorry, you cannot edit this URL because you did not create it.')
+    return response.send('Sorry, you cannot edit this URL because you did not create it.');
   }
   const longURL = request.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
