@@ -107,6 +107,10 @@ app.get("/hello", (request, response) => {
 });
 
 app.post("/urls", (request, response) => {
+  const userId = request.cookies.userId;
+  if (!userId) {// request cookie
+    return response.send('Cannot shorten URL for non-users. Redirecting to login page!').redirect('login');
+  }
   console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
   urlDatabase[shortURL] = request.body.longURL; // saving the long url at short url key
