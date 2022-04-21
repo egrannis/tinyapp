@@ -9,11 +9,6 @@ const cookieParser = require('cookie-parser');
 const { request } = require("express");
 app.use(cookieParser());
 
-// const urlDatabase = {
-// "b2xVn2": "http://www.lighthouselabs.ca",
-// "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   b6UTxQ: {
         longURL: "https://www.tsn.ca",
@@ -56,8 +51,7 @@ function generateRandomString() {
      randString += string[Math.floor(Math.random()* string.length)];
    }
    return randString;
-  }
-
+};
 
 function userOwnedUrls(userId){
   const userURLS = {}
@@ -67,7 +61,7 @@ function userOwnedUrls(userId){
     }
   }
   return userURLS;
-}
+};
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
   const userId = request.cookies.userId;
@@ -91,7 +85,6 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL 
   const userId = request.cookies.userId;
-  console.log('first one: ', urlDatabase);
   const templateVars = { 
     shortURL: request.params.shortURL, 
     longURL: urlDatabase[request.params.shortURL].longURL, //fixed this 8:25 pm but not working
@@ -117,6 +110,9 @@ app.get("/login", (request, response) => { // view login page
 });
 
 app.get("/u/:shortURL", (request, response) => { // The created shortURL link that redirects to longURL
+  if (!urlDatabase[request.params.shortURL]) {
+    return response.send('Sorry, that shortURL id does not exist!');
+  }
   const longURL = urlDatabase[request.params.shortURL].longURL; //fixed 8:25 pm
   response.redirect(longURL);
 });
@@ -133,8 +129,6 @@ app.get("/hello", (request, response) => {
   response.send("<html><body>Hello <b>World</b></body></html>\n")
 });
 
-
-
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
   delete(urlDatabase[shortURL]); // I think we want to delete the whole object, so ok? April 20
@@ -142,7 +136,6 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 });
 
 app.post('/login', (request, response) => {
-  console.log(request.body);
   const user = findUserByEmail(request.body.email);
   if(!user) {
     return response.status(403).send('Sorry, a user with that email cannot be found.');
@@ -157,7 +150,6 @@ app.post('/logout', (request, response) => {
   response.clearCookie('userId').redirect('/urls');
 });
 
-
 app.post('/register', (request, response) => {
   const userId = generateRandomString();
   const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
@@ -169,13 +161,11 @@ app.post('/register', (request, response) => {
   };
   const user = {id: userId, email: request.body.email, password: request.body.password }
   users[userId] = user; // at key of userID, the value is an object.
-  response.cookie('userId', userId); 
-  response.redirect('/urls');// after adding user, set userid cookie containing new ID
+  response.cookie('userId', userId).redirect('/urls');
 });
 
 app.post('/urls', (request, response) => { //Creating new URL
   const userId = request.cookies.userId;
-  console.log(urlDatabase)
   if (!userId) {
     return response.status(403).redirect('/login');
   }
@@ -184,18 +174,14 @@ app.post('/urls', (request, response) => { //Creating new URL
   response.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
-
-
 app.post('/urls/:shortURL', (request, response) => {
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
-  const userId = request.cookies.userId;
-  console.log(shortURL);
+  // const userId = request.cookies.userId;
   const longURL = request.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
   response.redirect('/urls');
 });
 
-// URL editing
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
