@@ -7,16 +7,17 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 const { request } = require("express");
+const res = require("express/lib/response");
 app.use(cookieParser());
 
 const urlDatabase = {
   b6UTxQ: {
         longURL: "https://www.tsn.ca",
-        userID: "aJ48lW"
+        userID: "userRandomID"
     },
     i3BoGr: {
         longURL: "https://www.google.ca",
-        userID: "aJ48lW"
+        userID: "userRandomID"
     }
 };
 
@@ -53,10 +54,10 @@ function generateRandomString() {
    return randString;
 };
 
-function userOwnedUrls(userId){
+function urlsForUser(id){
   const userURLS = {}
   for (let shortURL in urlDatabase) {
-    if(urlDatabase[shortURL].userID === userId) {
+    if(urlDatabase[shortURL].userID === id) {
       userURLS[shortURL] = urlDatabase[shortURL]
     }
   }
@@ -65,8 +66,11 @@ function userOwnedUrls(userId){
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
   const userId = request.cookies.userId;
+  if (!users[userId]) { // updated cant change
+    return response.send('Sorry, you can only view URLs if you are logged in. Please register or log in.')
+  };
   const templateVars = {
-    urls:userOwnedUrls(userId),//poss issue here
+    urls: urlsForUser(userId),//poss issue here
     user: users[userId]
   };
   response.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
@@ -74,7 +78,7 @@ app.get("/urls", (request, response) => { // view my URLs page that shows everyt
 
 app.get("/urls/new", (request, response) => { // view "Create new URL"
   const userId = request.cookies.userId;
-  if (!userId) {
+  if (!users[userId]) {
     return response.status(403).redirect('/login');
   }
   const templateVars = {
@@ -84,10 +88,14 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 });
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL 
+  const shortURL = request.params.shortURL;
   const userId = request.cookies.userId;
+  if (urlDatabase[shortURL].userID !== userId) {// updated line 98
+    return response.send('Sorry, you cannot edit this URL because you do not own it')
+  }
   const templateVars = { 
     shortURL: request.params.shortURL, 
-    longURL: urlDatabase[request.params.shortURL].longURL, //fixed this 8:25 pm but not working
+    longURL: urlDatabase[request.params.shortURL].longURL,
     user: users[userId]
   };
   response.render("urls_show", templateVars);
@@ -113,7 +121,7 @@ app.get("/u/:shortURL", (request, response) => { // The created shortURL link th
   if (!urlDatabase[request.params.shortURL]) {
     return response.send('Sorry, that shortURL id does not exist!');
   }
-  const longURL = urlDatabase[request.params.shortURL].longURL; //fixed 8:25 pm
+  const longURL = urlDatabase[request.params.shortURL].longURL; 
   response.redirect(longURL);
 });
 
@@ -131,7 +139,10 @@ app.get("/hello", (request, response) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  delete(urlDatabase[shortURL]); // I think we want to delete the whole object, so ok? April 20
+  if (urlDatabase[shortURL].userID !== userId) {//I need to update htis, only updated get request
+    return response.send('Sorry, you cannot delete this URL because you did not create it.')
+  }
+  delete(urlDatabase[shortURL]); 
   response.redirect('/urls');
 });
 
@@ -166,7 +177,7 @@ app.post('/register', (request, response) => {
 
 app.post('/urls', (request, response) => { //Creating new URL
   const userId = request.cookies.userId;
-  if (!userId) {
+  if (!users[userId]) {
     return response.status(403).redirect('/login');
   }
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
@@ -174,9 +185,11 @@ app.post('/urls', (request, response) => { //Creating new URL
   response.redirect(`/urls/${shortURL}`); // redirecting to shortURL page
 });
 
-app.post('/urls/:shortURL', (request, response) => {
+app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
-  // const userId = request.cookies.userId;
+  if (urlDatabase[shortURL].userID !== userId) { //checking if the userid for that short URL matches that of the person requesting
+    return response.send('Sorry, you cannot edit this URL because you did not create it.')
+  }
   const longURL = request.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
   response.redirect('/urls');
