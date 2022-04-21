@@ -7,6 +7,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 // const response = require("express/lib/response");
 app.use(cookieParser());
+const bcrypt = require('bcryptjs');
 
 const urlDatabase = {
   b6UTxQ: {
@@ -23,7 +24,8 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purpleswag",
+ 
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -162,7 +164,7 @@ app.post('/login', (request, response) => {
   if (!user) {
     return response.status(403).send('Sorry, a user with that email cannot be found.');
   }
-  if (request.body.password !== user.password) {
+  if (!bcrypt.compareSync(request.body.password, user.password)) {
     return response.status(403).send('Sorry, incorrect password!');
   }
   response.cookie('userId', user.id).redirect('/urls');
@@ -181,7 +183,8 @@ app.post('/register', (request, response) => {
   if (findUserByEmail(email)) {
     return response.status(400).send('Your account already exists. Please log in instead!');
   }
-  const user = {id: userId, email: request.body.email, password: request.body.password };
+  const hashedPass = bcrypt.hashSync(request.body.password, 10);
+  const user = {id: userId, email: request.body.email, password: hashedPass };
   users[userId] = user; // at key of userID, the value is an object.
   response.cookie('userId', userId).redirect('/urls');
 });
