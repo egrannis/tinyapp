@@ -63,10 +63,14 @@ const urlsForUser = (id) => {
 };
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
-  const userId = request.cookies.userId;
-  if (!users[userId]) { // if users database at that userid doesn't exist
-    return response.send('Sorry, you can only view URLs if you are logged in. Please register or log in.');
+  if (!users[request.cookies.userId]) { // if users database at that userid doesn't exist
+   const templateVars = {
+     message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+     statusCode: 401
+   }
+    return response.render("urls_error", templateVars)
   }
+  const userId = request.cookies.userId;
   const templateVars = {
     urls: urlsForUser(userId), // users can only see the shortURLs for their specific userid
     user: users[userId]
@@ -87,10 +91,15 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL
   const shortURL = request.params.shortURL;
-  const userId = request.cookies.userId;
-  if (urlDatabase[shortURL].userID !== userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
-    return response.send('Sorry, you cannot edit this URL because you did not create it.');
+  if (urlDatabase[shortURL].userID !== request.cookies.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+    const templateVars = {
+      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+      statusCode: 401
+      // user: users[userId]
+    }
+     return response.render("urls_error", templateVars)
   }
+  const userId = request.cookies.userId;
   const templateVars = {
     shortURL: request.params.shortURL,
     longURL: urlDatabase[request.params.shortURL].longURL,
@@ -137,9 +146,12 @@ app.get("/hello", (request, response) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  const userId = request.cookies.userId;
-  if (urlDatabase[shortURL].userID !== userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
-    return response.send('Sorry, you cannot delete this URL because you did not create it.');
+  if (urlDatabase[shortURL].userID !== request.cookies.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+    const templateVars = {
+      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+      statusCode: 401
+    }
+     return response.render("urls_error", templateVars)
   }
   delete(urlDatabase[shortURL]);
   response.redirect('/urls');
@@ -186,9 +198,12 @@ app.post('/urls', (request, response) => { //Creating new URL
 
 app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
-  const userId = request.cookies.userId;
-  if (urlDatabase[shortURL].userID !== userId) { //checking if the userid for that short URL matches that of the person requesting
-    return response.send('Sorry, you cannot edit this URL because you did not create it.');
+  if (urlDatabase[shortURL].userID !== request.cookies.userId) { //checking if the userid for that short URL matches that of the person requesting
+    const templateVars = {
+      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+      statusCode: 401
+    }
+     return response.render("urls_error", templateVars)
   }
   const longURL = request.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
