@@ -4,9 +4,14 @@ const PORT = 3001; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
 // const response = require("express/lib/response");
-app.use(cookieParser());
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['spring', 'summer', 'autumn']
+}))
 const bcrypt = require('bcryptjs');
 
 const urlDatabase = {
@@ -65,14 +70,14 @@ const urlsForUser = (id) => {
 };
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
-  if (!users[request.cookies.userId]) { // if users database at that userid doesn't exist
+  if (!users[request.session.userId]) { // if users database at that userid doesn't exist
    const templateVars = {
      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
      statusCode: 401
    }
     return response.render("urls_error", templateVars)
   }
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   const templateVars = {
     urls: urlsForUser(userId), // users can only see the shortURLs for their specific userid
     user: users[userId]
@@ -81,7 +86,7 @@ app.get("/urls", (request, response) => { // view my URLs page that shows everyt
 });
 
 app.get("/urls/new", (request, response) => { // view "Create new URL"
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   if (!users[userId]) {// if users database at userid doesn't exist, then it'll respond
     return response.status(403).redirect('/login');
   }
@@ -93,7 +98,7 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL
   const shortURL = request.params.shortURL;
-  if (urlDatabase[shortURL].userID !== request.cookies.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (urlDatabase[shortURL].userID !== request.session.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
@@ -101,7 +106,7 @@ app.get("/urls/:shortURL", (request, response) => { // view when I want to edit 
     }
      return response.render("urls_error", templateVars)
   }
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   const templateVars = {
     shortURL: request.params.shortURL,
     longURL: urlDatabase[request.params.shortURL].longURL,
@@ -111,7 +116,7 @@ app.get("/urls/:shortURL", (request, response) => { // view when I want to edit 
 });
 
 app.get("/register", (request, response) => { // view register page
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   const templateVars = {
     user: users[userId]
   };
@@ -119,7 +124,7 @@ app.get("/register", (request, response) => { // view register page
 });
 
 app.get("/login", (request, response) => { // view login page
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   const templateVars = {
     user: users[userId]
   };
@@ -148,7 +153,7 @@ app.get("/hello", (request, response) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  if (urlDatabase[shortURL].userID !== request.cookies.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (urlDatabase[shortURL].userID !== request.session.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
@@ -167,11 +172,13 @@ app.post('/login', (request, response) => {
   if (!bcrypt.compareSync(request.body.password, user.password)) {
     return response.status(403).send('Sorry, incorrect password!');
   }
-  response.cookie('userId', user.id).redirect('/urls');
+  request.session.userId = user.id;
+  response.redirect('/urls');
 });
 
 app.post('/logout', (request, response) => {
-  response.clearCookie('userId').redirect('/urls');
+  request.session.userId = null; //response.clearCookie('userId')
+  response.redirect('/urls');
 });
 
 app.post('/register', (request, response) => {
@@ -186,11 +193,12 @@ app.post('/register', (request, response) => {
   const hashedPass = bcrypt.hashSync(request.body.password, 10);
   const user = {id: userId, email: request.body.email, password: hashedPass };
   users[userId] = user; // at key of userID, the value is an object.
-  response.cookie('userId', userId).redirect('/urls');
+  request.session.userId = userId;
+  response.redirect('/urls');
 });
 
 app.post('/urls', (request, response) => { //Creating new URL
-  const userId = request.cookies.userId;
+  const userId = request.session.userId;
   if (!users[userId]) {
     return response.status(403).redirect('/login');
   }
@@ -201,7 +209,7 @@ app.post('/urls', (request, response) => { //Creating new URL
 
 app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
-  if (urlDatabase[shortURL].userID !== request.cookies.userId) { //checking if the userid for that short URL matches that of the person requesting
+  if (urlDatabase[shortURL].userID !== request.session.userId) { //checking if the userid for that short URL matches that of the person requesting
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
