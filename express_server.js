@@ -144,7 +144,7 @@ app.post('/urls/:shortURL/delete', (request, response) => { // delete a short UR
       statusCode: 401,
       user: false
     };
-    return response.render('urls_error', templateVars); // 9:08 pm april 21 cahnged render to redirect
+    return response.render('urls_error', templateVars);
   }
   delete(urlDatabase[shortURL]);
   response.redirect('/urls');
