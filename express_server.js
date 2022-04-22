@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 3001; // default port 8080
+const PORT = 3001; // changed default port because was having tech difficulties with 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -38,7 +38,7 @@ const users = {
 };
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
-  if (!users[request.session.userId]) { // if users database at that userid doesn't exist
+  if (!users[request.session.userId]) { // if the users database at that specific userid doesn't exist
     const templateVars = {
       message: "Hi there! You can only view the 'My URLs' page if you are logged in. Please register or log in to create and view URLs.",
       statusCode: 401,
@@ -56,7 +56,7 @@ app.get("/urls", (request, response) => { // view my URLs page that shows everyt
 
 app.get("/urls/new", (request, response) => { // view "Create new URL"
   const userId = request.session.userId;
-  if (!users[userId]) {// if users database at userid doesn't exist, then it'll respond
+  if (!users[userId]) {// if users database at userid doesn't exist, then it'll respond and redirect the page
     return response.status(403).redirect('/login');
   }
   const templateVars = {
@@ -128,9 +128,9 @@ app.get("/hello", (request, response) => {
   response.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.post('/urls/:shortURL/delete', (request, response) => {
+app.post('/urls/:shortURL/delete', (request, response) => { // delete a short URL
   const shortURL = request.params.shortURL;
-  if (!urlDatabase[shortURL]) {
+  if (!urlDatabase[shortURL]) {// if the requested short URL can't be found, receive an error page
     const templateVars = {
       message: "Sorry, that shortURL id does not exist!",
       statusCode: 401,
@@ -138,7 +138,7 @@ app.post('/urls/:shortURL/delete', (request, response) => {
     };
     return response.render('urls_error', templateVars);
   }
-  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID !== request.session.userId) {
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID !== request.session.userId) { // if the requested short URL exists, but the user ID doesn't match for it, provide the user with a denial message
     const templateVars = {
       message: "Hi there! You can only delete URLs if you created them. Please register or log in to make your own URLs.",
       statusCode: 401,
@@ -150,9 +150,9 @@ app.post('/urls/:shortURL/delete', (request, response) => {
   response.redirect('/urls');
 });
 
-app.post('/login', (request, response) => {
+app.post('/login', (request, response) => { // login page
   const user = findUserByEmail(request.body.email, users);
-  if (!user) {
+  if (!user) {// if the user cannot be found by the email, prompt with a message that email isnt linked to an account
     const templateVars = {
       message: "Hello, it looks like your email isn't linked with an account. Please try registering instead!",
       statusCode: 403,
@@ -160,7 +160,7 @@ app.post('/login', (request, response) => {
     };
     return response.render('urls_error', templateVars);
   }
-  if (!bcrypt.compareSync(request.body.password, user.password)) {
+  if (!bcrypt.compareSync(request.body.password, user.password)) { // if the password doesn't match the password saved in the database, provide an error message
     const templateVars = {
       message: "Hello, it looks like your password is incorrect. Please try logging in again!",
       statusCode: 403,
@@ -168,7 +168,7 @@ app.post('/login', (request, response) => {
     };
     return response.render('urls_error', templateVars);
   }
-  request.session.userId = user.id;
+  request.session.userId = user.id; // set the session id as the id linked to that user's email
   response.redirect('/urls');
 });
 
@@ -180,7 +180,7 @@ app.post('/logout', (request, response) => {
 app.post('/register', (request, response) => {
   const userId = generateRandomString();
   const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
-  if (email === '' || password === '') {
+  if (email === '' || password === '') { // If email or password are empty strings, provide error message
     const templateVars = {
       message:'You can\'t enter an empty string as an email or password!',
       statusCode: 400,
@@ -188,7 +188,7 @@ app.post('/register', (request, response) => {
     };
     return response.render('urls_error', templateVars);
   }
-  if (findUserByEmail(email, users)) {
+  if (findUserByEmail(email, users)) { // If an email is already in the database, provide an error message and mention logging in
     const templateVars = {
       message:'Your account already exists. Please log in instead!',
       statusCode: 400,
@@ -197,7 +197,7 @@ app.post('/register', (request, response) => {
     return response.render('urls_error', templateVars);
   }
   const hashedPass = bcrypt.hashSync(request.body.password, 10);
-  const user = {id: userId, email: request.body.email, password: hashedPass };
+  const user = {id: userId, email: request.body.email, password: hashedPass }; // creating a new user in the database, storing hashed password in database
   users[userId] = user; // at key of userID, the value is an object.
   request.session.userId = userId;
   response.redirect('/urls');
@@ -205,7 +205,7 @@ app.post('/register', (request, response) => {
 
 app.post('/urls', (request, response) => { //Creating new URL
   const userId = request.session.userId;
-  if (!users[userId]) {
+  if (!users[userId]) { // if a user with that user ID doesn't exist in the database, then redirect to the login page
     return response.status(403).redirect('/login');
   }
   let shortURL = generateRandomString(); // generating randomstring and storing in shortURL variable
@@ -224,7 +224,7 @@ app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
     return response.render("urls_error", templateVars);
   }
   const longURL = request.body.longURL;
-  urlDatabase[shortURL].longURL = longURL;
+  urlDatabase[shortURL].longURL = longURL; // resetting the value of long URL within the user object since it is being edited
   response.redirect('/urls');
 });
 
