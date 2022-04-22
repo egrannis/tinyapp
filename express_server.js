@@ -10,6 +10,7 @@ app.use(cookieSession({
   keys: ['spring', 'summer', 'autumn']
 }));
 const bcrypt = require('bcryptjs');
+const {findUserByEmail, urlsForUser, generateRandomString} = require('./helpers');
 
 const urlDatabase = {
   b6UTxQ: {
@@ -26,7 +27,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purpleswag",
+    password: "purple",
  
   },
   "user2RandomID": {
@@ -34,36 +35,6 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
-};
-
-const findUserByEmail = (email, database) => {
-  const givenEmail = email;
-  for (let userKey in database) {
-    if (database[userKey].email === givenEmail) {
-      return database[userKey];
-    }
-  }
-  return false;
-};
-
-const generateRandomString = () => {
-  let string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let randString = '';
- 
-  for (let i = 0; i < 6; i++) {
-    randString += string[Math.floor(Math.random() * string.length)];
-  }
-  return randString;
-};
-
-const urlsForUser = (id) => {
-  const userURLS = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      userURLS[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return userURLS;
 };
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
@@ -77,7 +48,7 @@ app.get("/urls", (request, response) => { // view my URLs page that shows everyt
   }
   const userId = request.session.userId;
   const templateVars = {
-    urls: urlsForUser(userId), // users can only see the shortURLs for their specific userid
+    urls: urlsForUser(userId, urlDatabase), // users can only see the shortURLs for their specific userid
     user: users[userId]
   };
   response.render("urls_index", templateVars); // since we're using the Express convention of using a views directory, we don't have to tell express where to find the file
