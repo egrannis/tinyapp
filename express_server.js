@@ -36,11 +36,11 @@ const users = {
   }
 };
 
-const findUserByEmail = (email) => {
+const findUserByEmail = (email, database) => {
   const givenEmail = email;
-  for (let userKey in users) {
-    if (users[userKey].email === givenEmail) {
-      return users[userKey];
+  for (let userKey in database) {
+    if (database[userKey].email === givenEmail) {
+      return database[userKey];
     }
   }
   return false;
@@ -180,7 +180,7 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 });
 
 app.post('/login', (request, response) => {
-  const user = findUserByEmail(request.body.email);
+  const user = findUserByEmail(request.body.email, users);
   if (!user) {
     const templateVars = {
       message: "Hello, it looks like your email isn't linked with an account. Please try registering instead!",
@@ -217,7 +217,7 @@ app.post('/register', (request, response) => {
     };
     return response.render('urls_error', templateVars);
   }
-  if (findUserByEmail(email)) {
+  if (findUserByEmail(email, users)) {
     const templateVars = {
       message:'Your account already exists. Please log in instead!',
       statusCode: 400,
