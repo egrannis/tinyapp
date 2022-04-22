@@ -4,7 +4,6 @@ const PORT = 3001; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-// const response = require("express/lib/response");
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
@@ -97,9 +96,17 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL
   const shortURL = request.params.shortURL;
-  if (!urlDatabase[shortURL] || urlDatabase[shortURL].userID !== request.session.userId) { // // 9:53 pm April 21 - check with mentor if this is secure // if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (!urlDatabase[shortURL]) {
     const templateVars = {
-      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+      message: "Sorry, that shortURL id does not exist!",
+      statusCode: 401,
+      user: false
+    };
+    return response.render('urls_error', templateVars);
+  }
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID !== request.session.userId) {
+    const templateVars = {
+      message: "Hi there! You can only edit URLs if you created them. Please register or log in.",
       statusCode: 401,
       user: false
     };
@@ -152,13 +159,21 @@ app.get("/hello", (request, response) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  if (!urlDatabase[shortURL] || urlDatabase[shortURL].userID !== request.session.userId) {// 9:53 pm April 21 - check with mentor if this is secure // if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (!urlDatabase[shortURL]) {
+    const templateVars = {
+      message: "Sorry, that shortURL id does not exist!",
+      statusCode: 401,
+      user: false
+    };
+    return response.render('urls_error', templateVars);
+  }
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID !== request.session.userId) {
     const templateVars = {
       message: "Hi there! You can only delete URLs if you created them. Please register or log in to make your own URLs.",
       statusCode: 401,
       user: false
     };
-    return response.render('urls_error', templateVars) // 9:08 pm april 21 cahnged render to redirect
+    return response.render('urls_error', templateVars); // 9:08 pm april 21 cahnged render to redirect
   }
   delete(urlDatabase[shortURL]);
   response.redirect('/urls');
@@ -166,15 +181,13 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 app.post('/login', (request, response) => {
   const user = findUserByEmail(request.body.email);
-  const userId = request.session.userId;
   if (!user) {
     const templateVars = {
       message: "Hello, it looks like your email isn't linked with an account. Please try registering instead!",
       statusCode: 403,
       user: false
     };
-    return response.render('urls_error', templateVars)
-    // return response.status(403).send('Sorry, a user with that email cannot be found.');
+    return response.render('urls_error', templateVars);
   }
   if (!bcrypt.compareSync(request.body.password, user.password)) {
     const templateVars = {
@@ -182,7 +195,7 @@ app.post('/login', (request, response) => {
       statusCode: 403,
       user: false
     };
-    return response.render('urls_error', templateVars)
+    return response.render('urls_error', templateVars);
   }
   request.session.userId = user.id;
   response.redirect('/urls');
@@ -196,13 +209,13 @@ app.post('/logout', (request, response) => {
 app.post('/register', (request, response) => {
   const userId = generateRandomString();
   const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
-  if (email === '' || password === '') { 
+  if (email === '' || password === '') {
     const templateVars = {
       message:'You can\'t enter an empty string as an email or password!',
       statusCode: 400,
       user: false
     };
-    return response.render('urls_error', templateVars)
+    return response.render('urls_error', templateVars);
   }
   if (findUserByEmail(email)) {
     const templateVars = {
@@ -210,7 +223,7 @@ app.post('/register', (request, response) => {
       statusCode: 400,
       user: false
     };
-    return response.render('urls_error', templateVars)
+    return response.render('urls_error', templateVars);
   }
   const hashedPass = bcrypt.hashSync(request.body.password, 10);
   const user = {id: userId, email: request.body.email, password: hashedPass };
