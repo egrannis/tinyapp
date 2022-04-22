@@ -1,5 +1,4 @@
 
-
 const findUserByEmail = (email, database) => {
   const givenEmail = email;
   for (let userKey in database) {
@@ -7,7 +6,7 @@ const findUserByEmail = (email, database) => {
       return database[userKey];
     }
   }
-  return false;
+  return undefined;
 };
 
 const urlsForUser = (id, database) => {
