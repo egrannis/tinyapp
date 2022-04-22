@@ -6,7 +6,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["Easily create a short, shareable URL link"](https://github.com/egrannis/tinyapp/blob/117a25b4f5937e986fb2063845494d923a952f2c/assets/TinyURL.png)
 
-!["View all saved short URLs you created with the option to edit and delete them as needed"](tinyapp/assets/ViewURLs.png)
+!["View all saved short URLs you created with the option to edit and delete them as needed"](https://github.com/egrannis/tinyapp/blob/aa242a64313ea969188863f37bf0c9a779942a8c/assets/ViewURLs.png)
 
 ## Dependencies
 
