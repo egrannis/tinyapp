@@ -4,14 +4,12 @@ const PORT = 3001; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-// const cookieParser = require('cookie-parser');
-// app.use(cookieParser());
 // const response = require("express/lib/response");
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['spring', 'summer', 'autumn']
-}))
+}));
 const bcrypt = require('bcryptjs');
 
 const urlDatabase = {
@@ -71,11 +69,11 @@ const urlsForUser = (id) => {
 
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
   if (!users[request.session.userId]) { // if users database at that userid doesn't exist
-   const templateVars = {
-     message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
-     statusCode: 401
-   }
-    return response.render("urls_error", templateVars)
+    const templateVars = {
+      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
+      statusCode: 401
+    };
+    return response.render("urls_error", templateVars);
   }
   const userId = request.session.userId;
   const templateVars = {
@@ -103,8 +101,8 @@ app.get("/urls/:shortURL", (request, response) => { // view when I want to edit 
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
       // user: users[userId]
-    }
-     return response.render("urls_error", templateVars)
+    };
+    return response.render("urls_error", templateVars);
   }
   const userId = request.session.userId;
   const templateVars = {
@@ -157,8 +155,8 @@ app.post('/urls/:shortURL/delete', (request, response) => {
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
-    }
-     return response.render("urls_error", templateVars)
+    };
+    return response.render("urls_error", templateVars);
   }
   delete(urlDatabase[shortURL]);
   response.redirect('/urls');
@@ -177,7 +175,7 @@ app.post('/login', (request, response) => {
 });
 
 app.post('/logout', (request, response) => {
-  request.session.userId = null; //response.clearCookie('userId')
+  request.session = null; //response.clearCookie('userId')
   response.redirect('/urls');
 });
 
@@ -213,8 +211,8 @@ app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
       statusCode: 401
-    }
-     return response.render("urls_error", templateVars)
+    };
+    return response.render("urls_error", templateVars);
   }
   const longURL = request.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
