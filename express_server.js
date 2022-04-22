@@ -70,8 +70,9 @@ const urlsForUser = (id) => {
 app.get("/urls", (request, response) => { // view my URLs page that shows everything (Main page)
   if (!users[request.session.userId]) { // if users database at that userid doesn't exist
     const templateVars = {
-      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
-      statusCode: 401
+      message: "Hi there! You can only view the 'My URLs' page if you are logged in. Please register or log in to create and view URLs.",
+      statusCode: 401,
+      user: false
     };
     return response.render("urls_error", templateVars);
   }
@@ -96,11 +97,11 @@ app.get("/urls/new", (request, response) => { // view "Create new URL"
 
 app.get("/urls/:shortURL", (request, response) => { // view when I want to edit my URL, or after I've created a new URL
   const shortURL = request.params.shortURL;
-  if (urlDatabase[shortURL].userID !== request.session.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (!urlDatabase[shortURL] || urlDatabase[shortURL].userID !== request.session.userId) { // // 9:53 pm April 21 - check with mentor if this is secure // if the urlDatabase user id value at the given shortURL doesn't match the user's userid
     const templateVars = {
       message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
-      statusCode: 401
-      // user: users[userId]
+      statusCode: 401,
+      user: false
     };
     return response.render("urls_error", templateVars);
   }
@@ -151,12 +152,13 @@ app.get("/hello", (request, response) => {
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const shortURL = request.params.shortURL;
-  if (urlDatabase[shortURL].userID !== request.session.userId) {// if the urlDatabase user id value at the given shortURL doesn't match the user's userid
+  if (!urlDatabase[shortURL] || urlDatabase[shortURL].userID !== request.session.userId) {// 9:53 pm April 21 - check with mentor if this is secure // if the urlDatabase user id value at the given shortURL doesn't match the user's userid
     const templateVars = {
-      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
-      statusCode: 401
+      message: "Hi there! You can only delete URLs if you created them. Please register or log in to make your own URLs.",
+      statusCode: 401,
+      user: false
     };
-    return response.render("urls_error", templateVars);
+    return response.render('urls_error', templateVars) // 9:08 pm april 21 cahnged render to redirect
   }
   delete(urlDatabase[shortURL]);
   response.redirect('/urls');
@@ -164,11 +166,23 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 app.post('/login', (request, response) => {
   const user = findUserByEmail(request.body.email);
+  const userId = request.session.userId;
   if (!user) {
-    return response.status(403).send('Sorry, a user with that email cannot be found.');
+    const templateVars = {
+      message: "Hello, it looks like your email isn't linked with an account. Please try registering instead!",
+      statusCode: 403,
+      user: false
+    };
+    return response.render('urls_error', templateVars)
+    // return response.status(403).send('Sorry, a user with that email cannot be found.');
   }
   if (!bcrypt.compareSync(request.body.password, user.password)) {
-    return response.status(403).send('Sorry, incorrect password!');
+    const templateVars = {
+      message: "Hello, it looks like your password is incorrect. Please try logging in again!",
+      statusCode: 403,
+      user: false
+    };
+    return response.render('urls_error', templateVars)
   }
   request.session.userId = user.id;
   response.redirect('/urls');
@@ -182,11 +196,21 @@ app.post('/logout', (request, response) => {
 app.post('/register', (request, response) => {
   const userId = generateRandomString();
   const {email, password} = request.body; // Destructuring - js smart to know that email and password fall into request.body object
-  if (email === '' || password === '') {
-    return response.status(400).send('400: You can\'t enter an empty string as an email or password!');
+  if (email === '' || password === '') { 
+    const templateVars = {
+      message:'You can\'t enter an empty string as an email or password!',
+      statusCode: 400,
+      user: false
+    };
+    return response.render('urls_error', templateVars)
   }
   if (findUserByEmail(email)) {
-    return response.status(400).send('Your account already exists. Please log in instead!');
+    const templateVars = {
+      message:'Your account already exists. Please log in instead!',
+      statusCode: 400,
+      user: false
+    };
+    return response.render('urls_error', templateVars)
   }
   const hashedPass = bcrypt.hashSync(request.body.password, 10);
   const user = {id: userId, email: request.body.email, password: hashedPass };
@@ -209,8 +233,9 @@ app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   const shortURL = request.params.shortURL;// took existing short URL, and changing the long URL value at the same short URL value
   if (urlDatabase[shortURL].userID !== request.session.userId) { //checking if the userid for that short URL matches that of the person requesting
     const templateVars = {
-      message: "Hi there! You can only view URLs if you are logged in, and can only edit or delete URLs if you created them. Please register or log in.",
-      statusCode: 401
+      message: "Hi there! You can only edit URLs if you created them. Please register or log in to create your own editable URLs.",
+      statusCode: 401,
+      user: false
     };
     return response.render("urls_error", templateVars);
   }
@@ -218,7 +243,6 @@ app.post('/urls/:shortURL', (request, response) => { //editing the longURL value
   urlDatabase[shortURL].longURL = longURL;
   response.redirect('/urls');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
